@@ -33,7 +33,7 @@ class Obstacle:
         self.position = position
         self.grid_size = grid_size
         self.color = (0, 0, 0)
-        self.rect = pg.Rect(position[0]*self.grid_size, position[1]*self.grid_size, self.grid_size, self.grid_size)
+        self.rect = pg.Rect(np.floor(position[0]/self.grid_size)*self.grid_size, np.floor(position[1]/self.grid_size)*self.grid_size, self.grid_size, self.grid_size)
     
     def draw_self(self):
         '''draws self.rect at self.position in self.color'''
@@ -72,13 +72,22 @@ class Pathfinder:
             #set obstacles in grid
             if pg.mouse.get_pressed()[0]:
                 current_obstacle = Obstacle(self.screen, (mouse_x, mouse_y), self.grid_size)
-                print
+                self.obstacles.append(current_obstacle)
+            
+            if pg.mouse.get_pressed()[2]:
                 for obstacle in self.obstacles:
-                    if current_obstacle.rect.colliderect(obstacle.rect):
-                        pass
-                    else:
-                        self.obstacles.append(current_obstacle)
+                    if obstacle.rect.collidepoint(mouse_x, mouse_y):
+                        self.obstacles.remove(obstacle)
+                
+            for obstacle in self.obstacles:
+                obstacle.draw_self()
+                for obstacle_1 in self.obstacles:
+                    if obstacle.rect.colliderect(obstacle_1.rect) and obstacle_1 != obstacle:
+                        self.obstacles.remove(obstacle_1)
+                
 
+            print(len(self.obstacles))
+                
 
 
             #set goal
