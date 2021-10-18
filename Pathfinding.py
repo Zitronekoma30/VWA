@@ -71,7 +71,7 @@ class Pathfinder:
                 path = self.cursor.update(self.obstacles, self.goal)
                 #draw path
                 for rect in path:
-                    pg.draw.rect(self.screen, (30, 30, 30), rect)
+                    pg.draw.rect(self.screen, (0, 130, 100), rect)
                 
                 #time.sleep(0.5)
             else:
