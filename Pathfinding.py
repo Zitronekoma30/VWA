@@ -72,6 +72,8 @@ class Pathfinder:
                 #draw path
                 for rect in path:
                     pg.draw.rect(self.screen, (30, 30, 30), rect)
+                
+                #time.sleep(0.5)
             else:
                 self.cursor.draw(screen)
             
@@ -87,7 +89,6 @@ class Pathfinder:
 
 
             pg.display.update()
-            #time.sleep(0.5)
         pg.quit()
 
 pathfinder = Pathfinder(True, screen, GRID_SIZE, SCREEN_DIMENSIONS)

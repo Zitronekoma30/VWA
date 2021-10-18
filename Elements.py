@@ -15,6 +15,12 @@ class Cursor:
         dist = np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
         return dist
 
+    def collides_with_list(self, rect, rect_list: list) -> bool:
+        for item in rect_list:
+            if rect.colliderect(item):
+                return True
+        return False
+
     def update(self, obstacles: list, goal) -> list:
         '''runs the pathfinding logic'''
         options = []
@@ -33,9 +39,14 @@ class Cursor:
         for option in options:
             #if self.calculate_distance(option.left, option.top, goal.rect.left, goal.rect.top) > self.calculate_distance(self.rect.left, self.rect.top, goal.rect.left, goal.rect.top):
             #    options.remove(option)
-            for option1 in options:
-                if self.calculate_distance(option1.left, option1.top, goal.rect.left, goal.rect.top) > self.calculate_distance(option.left, option.top, goal.rect.left, goal.rect.top):
-                    options.remove(option1)
+            if self.collides_with_list(option, obstacles):
+                options.remove(option)
+            else:
+                for option1 in options:
+                    #check if this option is within a wall if so discard it, if not execute the following if clause
+                    if self.calculate_distance(option1.left, option1.top, goal.rect.left, goal.rect.top) > self.calculate_distance(option.left, option.top, goal.rect.left, goal.rect.top):
+                        options.remove(option1)
+                
 
         
         self.position = [options[0].left/self.grid_size, options[0].top/self.grid_size]
