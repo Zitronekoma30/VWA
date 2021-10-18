@@ -1,9 +1,10 @@
 import pygame as pg
 import numpy as np
+from Elements import BackgroundRenderer, Goal, Cursor, Obstacle
 
 
 #globals
-SCREEN_DIMENSIONS = [500, 500]
+SCREEN_DIMENSIONS= [500, 500]
 GRID_SIZE = 16
 CAPTION = "Pathfinding Algorithm"
 
@@ -15,32 +16,10 @@ pg.display.set_caption(CAPTION)
 
 #classes
 
-class BackgroundRenderer:
-    def __init__(self, surface, width, height, grid_size):
-        self.surface = surface
-        self.width = width
-        self.height = height
-        self.grid_size = grid_size
-    
-    def draw_background(self):
-        for y in range(self.height):
-            for x in range(self.width):
-                pg.draw.rect(self.surface, (255, 255, 255), pg.Rect(x * self.grid_size, y * self.grid_size, self.grid_size - 2, self.grid_size - 2))
 
-class Obstacle:
-    def __init__(self, surface, position, grid_size):
-        self.surface = surface
-        self.position = position
-        self.grid_size = grid_size
-        self.color = (0, 0, 0)
-        self.rect = pg.Rect(position[0]*self.grid_size, position[1]*self.grid_size, self.grid_size, self.grid_size)
-    
-    def draw_self(self):
-        '''draws self.rect at self.position in self.color'''
-        pg.draw.rect(self.surface, self.color, self.rect)
 
 class Pathfinder:
-    def __init__(self, running, screen, grid_size, screen_dimensions):
+    def __init__(self, running: bool, screen, grid_size: int, screen_dimensions: list):
         self.running = running
         self.screen = screen
         self.clock = pg.time.Clock()
@@ -49,8 +28,13 @@ class Pathfinder:
         self.obstacles = []
 
         #Instances
+        self.goal = Goal([400, 380], [self.grid_size, self.grid_size], (30, 30, 255), self.grid_size)
+        self.cursor = Cursor([20, 20], [self.grid_size, self.grid_size], (255, 255, 0), self.grid_size)
         self.bg_renderer = BackgroundRenderer(self.screen, int(np.floor(screen_dimensions[0]/self.grid_size)), int(np.floor(screen_dimensions[1]/self.grid_size)), self.grid_size)
     
+    def calculate_distance(start: list, end: list):
+        return [end[0] - start[0], end[1] - start[1]]
+
     def run_main_loop(self):
         '''starts the main loop, handles rendering as well as the logic'''
         delta_time = self.clock.tick(120)
@@ -67,21 +51,29 @@ class Pathfinder:
             #set up in loop variables
             mouse_x, mouse_y = pg.mouse.get_pos()
 
-            #All the logic
-            
             #set obstacles in grid
             if pg.mouse.get_pressed()[0]:
                 current_obstacle = Obstacle(self.screen, (mouse_x, mouse_y), self.grid_size)
-                print
+                self.obstacles.append(current_obstacle)
+            
+            if pg.mouse.get_pressed()[2]:
                 for obstacle in self.obstacles:
-                    if current_obstacle.rect.colliderect(obstacle.rect):
-                        pass
-                    else:
-                        self.obstacles.append(current_obstacle)
+                    if obstacle.rect.collidepoint(mouse_x, mouse_y):
+                        self.obstacles.remove(obstacle)
+                
+            for obstacle in self.obstacles:
+                obstacle.draw_self()
+                for obstacle_1 in self.obstacles:
+                    if obstacle.rect.colliderect(obstacle_1.rect) and obstacle_1 != obstacle:
+                         self.obstacles.remove(obstacle_1)
+                
+
+            print(len(self.obstacles))
+                
 
 
-
-            #set goal
+            #draw goal
+            self.goal.draw(self.screen)
 
             #set cursor position
             
