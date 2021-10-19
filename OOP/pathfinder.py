@@ -30,7 +30,7 @@ class Node:
         elif type == NodeType.EMPTY:
             self.color = (255, 255, 255)
         elif type == NodeType.OBSTACLE:
-            color = (0, 0, 0)
+            self.color = (0, 0, 0)
         else:
             print("Invalid NodeType")
         
@@ -57,6 +57,12 @@ class Main:
 
     def create_rect(self, position):
         return pg.Rect(position[0]*self.grid_size, position[1]*self.grid_size, self.grid_size-1, self.grid_size-1)
+    
+    def create_large_point(self, position):
+        return (position[0]*self.grid_size, position[1]*self.grid_size)
+    
+    def create_small_point(self, position):
+        return [np.floor(position[0]/self.grid_size), np.floor(position[1]/self.grid_size)]
 
 
     def set_start(self, position):
@@ -80,7 +86,6 @@ class Main:
 
         self.set_start(self.start_node_pos)
         self.set_end(self.end_node_pos)
-        self.find_distance()
 
     def find_distance(self):
         directions  = [[0, 1], [0, -1], [1, 0], [-1, 0]]
@@ -92,13 +97,13 @@ class Main:
             for node in self.nodes:
                 for direction in directions:
                     if node.rect.colliderect(self.create_rect([closed_node.position[0]+direction[0], closed_node.position[1]+direction[1]])):
-                        if closed_nodes.count(node) == 0:
+                        if closed_nodes.count(node) == 0 and node.type != NodeType.OBSTACLE:
                             #print("foundone")
                             closed_nodes.append(node)
                             node.distance = closed_node.distance+1
-                            node.color=[255, 255-node.distance*8, 255-node.distance*8]
+                            node.color=[255, 255-node.distance*5, 255-node.distance*5]
 
-            print("{} out of {}".format(len(closed_nodes), self.screen_size[0]*self.screen_size[1]))
+            print("{} out of {}".format(len(closed_nodes), len(self.nodes)))
 
         closed_nodes[0].color=(0,0,255)
         closed_nodes[closed_nodes.index(self.end_node)].color = (0, 255, 0)
@@ -115,6 +120,20 @@ class Main:
                 if event.type == pg.QUIT:
                     self.run = False
 
+            mouse_x, mouse_y = pg.mouse.get_pos()
+
+            if pg.mouse.get_pressed()[0]:
+                #print(self.create_small_point((mouse_x, mouse_y)))
+                for node in self.nodes:
+                    if node.position == self.create_small_point((mouse_x, mouse_y)):
+                        node.change_type(NodeType.OBSTACLE)
+            
+            if pg.mouse.get_pressed()[1]:
+                self.find_distance()
+
+            if pg.mouse.get_pressed()[2]:
+                pass
+
             self.screen.fill((0, 0, 0))
 
                 #set up in loop variables
@@ -122,8 +141,6 @@ class Main:
 
             for node in self.nodes:
                 pg.draw.rect(self.screen, node.color, node.rect)
-
-
 
             pg.display.update()
         
