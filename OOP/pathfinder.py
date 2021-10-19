@@ -1,8 +1,15 @@
 import pygame as pg
 import numpy as np
+from enum import Enum
 
 
 pg.init()
+
+class NodeType(Enum):
+    EMPTY = 0
+    OBSTACLE = 1
+    START = 2
+    END = 3
 
 class Node:
     def __init__(self, position, grid_size, type):
@@ -10,23 +17,22 @@ class Node:
         self.grid_size = grid_size
         self.type = type
 
-        if type == "s":
-            self.color = (0,0,255)
-        elif type == "e":
-            self.color = (0,255,0)
-        else:
-            self.color = (255,255,255)
+        self.change_type(type)
 
         self.distance = 0
         self.rect = pg.Rect(position[0]*grid_size, position[1]*grid_size, grid_size-1, grid_size-1)
     
     def change_type(self, type):
-        if type == "s":
+        if type == NodeType.START:
             self.color = (0, 0, 255)
-        elif type == "e":
+        elif type == NodeType.END:
             self.color = (0, 255, 0)
-        else:
+        elif type == NodeType.EMPTY:
             self.color = (255, 255, 255)
+        elif type == NodeType.OBSTACLE:
+            color = (0, 0, 0)
+        else:
+            print("Invalid NodeType")
         
         self.type = type
 
@@ -41,38 +47,64 @@ class Main:
 
 
         self.screen = pg.display.set_mode([screen_size[0]*grid_size, screen_size[1]*grid_size])
-        self.start_node_pos = [2, 2]
-        self.end_node_pos = [45, 45]
+        self.start_node_pos = [5, 5]
+        self.end_node_pos = [18, 18]
         self.nodes = []
         pg.display.set_caption(caption)
 
     def grid_to_real(self, position):
         return [position[0]*self.grid_size, position[1]*self.grid_size]
 
+    def create_rect(self, position):
+        return pg.Rect(position[0]*self.grid_size, position[1]*self.grid_size, self.grid_size-1, self.grid_size-1)
+
 
     def set_start(self, position):
         for node in self.nodes:
             if node.rect.collidepoint(self.grid_to_real(position)):
-                node.change_type("s")
+                node.change_type(NodeType.START)
+                node.distance = 0
                 self.start_node = node
 
     def set_end(self, position):
         for node in self.nodes:
             if node.rect.collidepoint(self.grid_to_real(position)):
-                node.change_type("e")
+                node.change_type(NodeType.END)
                 self.end_node = node
                 
 
     def create_nodes(self):
         for x in range(self.screen_size[0]):
             for y in range(self.screen_size[1]):
-                self.nodes.append(Node([x, y], self.grid_size, "g"))
+                self.nodes.append(Node([x, y], self.grid_size, NodeType.EMPTY))
 
         self.set_start(self.start_node_pos)
         self.set_end(self.end_node_pos)
+        self.find_distance()
 
     def find_distance(self):
-        pass
+        directions  = [[0, 1], [0, -1], [1, 0], [-1, 0]]
+        closed_nodes = []
+        closed_nodes.append(self.start_node)
+        print(len(closed_nodes))
+        
+        for closed_node in closed_nodes:
+            for node in self.nodes:
+                for direction in directions:
+                    if node.rect.colliderect(self.create_rect([closed_node.position[0]+direction[0], closed_node.position[1]+direction[1]])):
+                        if closed_nodes.count(node) == 0:
+                            #print("foundone")
+                            closed_nodes.append(node)
+                            node.distance = closed_node.distance+1
+                            node.color=[255, 255-node.distance*8, 255-node.distance*8]
+
+            print("{} out of {}".format(len(closed_nodes), self.screen_size[0]*self.screen_size[1]))
+
+        closed_nodes[0].color=(0,0,255)
+        closed_nodes[closed_nodes.index(self.end_node)].color = (0, 255, 0)
+
+
+
 
 
     def run_main_loop(self):
@@ -97,7 +129,7 @@ class Main:
         
         pg.quit()
 
-main = Main(16, [50, 50], "Pathfinding", True)
+main = Main(16, [20, 20], "Pathfinding", True)
 
 main.create_nodes()
 main.run_main_loop()
