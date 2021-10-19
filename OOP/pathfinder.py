@@ -102,6 +102,9 @@ class Main:
                             closed_nodes.append(node)
                             node.distance = closed_node.distance+1
                             node.color=[255, 255-node.distance*5, 255-node.distance*5]
+                            if node.color[1] < 0:
+                                node.color = (255, 0, 0)
+
 
             print("{} out of {}".format(len(closed_nodes), len(self.nodes)))
 
