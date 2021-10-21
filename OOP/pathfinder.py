@@ -1,6 +1,7 @@
 import pygame as pg
 import numpy as np
 from enum import Enum
+from operator import attrgetter
 
 
 pg.init()
@@ -111,6 +112,39 @@ class Main:
         closed_nodes[0].color=(0,0,255)
         closed_nodes[closed_nodes.index(self.end_node)].color = (0, 255, 0)
 
+    def find_path(self):
+        directions = [[0, 1], [0, -1], [1, 0], [-1, 0]]
+        bases = [self.end_node]
+        #look through all of the nodes bordering goal, choose the one with the lowest distance
+        surround = []
+        path = []
+        def get_surround_of_base(base):
+            for node in self.nodes:
+                for direction in directions:
+                    if node.rect.colliderect(self.create_rect([base.position[0]+direction[0], base.position[1]+direction[1]])):
+                        surround.append(node)
+                        for sur in surround:
+                            if sur.type == NodeType.OBSTACLE:
+                                surround.remove(sur)
+                        surround.sort(key = attrgetter("distance"), reverse = False)
+                        print(len(surround))
+        for base in bases:
+            get_surround_of_base(base)
+            bases.append( surround[0])
+            path.append(surround[0])
+            self.nodes[self.nodes.index(surround[0])].color = (0, 255, 0)
+            if self.nodes[self.nodes.index(surround[0])] == self.start_node:
+                break
+            surround = []
+            
+
+
+        print(len(path))
+        #make that node the base node
+        #repeat
+
+
+
 
 
 
@@ -133,6 +167,7 @@ class Main:
             
             if pg.mouse.get_pressed()[1]:
                 self.find_distance()
+                self.find_path()
 
             if pg.mouse.get_pressed()[2]:
                 pass
@@ -144,6 +179,8 @@ class Main:
 
             for node in self.nodes:
                 pg.draw.rect(self.screen, node.color, node.rect)
+
+            
 
             pg.display.update()
         
