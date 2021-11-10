@@ -3,7 +3,6 @@ import numpy as np
 from enum import Enum
 from operator import attrgetter
 
-
 pg.init()
 
 class NodeType(Enum):
@@ -143,12 +142,6 @@ class Main:
         #make that node the base node
         #repeat
 
-
-
-
-
-
-
     def run_main_loop(self):
         '''starts the main loop, handles rendering as well as the logic'''
         delta_time = self.clock.tick(120)
@@ -173,9 +166,6 @@ class Main:
                 pass
 
             self.screen.fill((0, 0, 0))
-
-                #set up in loop variables
-            mouse_x, mouse_y = pg.mouse.get_pos()
 
             for node in self.nodes:
                 pg.draw.rect(self.screen, node.color, node.rect)
