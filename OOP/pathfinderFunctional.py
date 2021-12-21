@@ -40,6 +40,7 @@ def set_up_nodes(grid_size: int, screen_size: tuple) -> list:
         
     nodes = change_node_type(nodes, (2, 2), "start")
     nodes = change_node_type(nodes, (15, 15), "end")
+
     return nodes
 
 def start_pathdinding(grid_size: int, screen_size:tuple, caption:str) -> None:
@@ -57,15 +58,16 @@ def start_pathdinding(grid_size: int, screen_size:tuple, caption:str) -> None:
 #Processing
 def change_node_type(nodes: list, position: tuple, type: str) -> list:
     '''changes the type of a node by taking a nodes structure and a position and changing it to the given type by returning a new node structure'''
-    match type:
-        case "floor":
-            nodes[position[1]][position[0]]["color"] = (255, 255, 255)
-        case "start":
-            nodes[position[1]][position[0]]["color"] = (0, 0, 255)
-        case "end":
-            nodes[position[1]][position[0]]["color"] = (0, 255, 0)
-        case "wall":
-            nodes[position[1]][position[0]]["color"] = (0, 0, 0)
+    
+    if type == "floor":
+        nodes[position[1]][position[0]]["color"] = (255, 255, 255)
+    elif type == "start":
+        nodes[position[1]][position[0]]["color"] = (0, 0, 255)
+    elif type == "end":
+        nodes[position[1]][position[0]]["color"] = (0, 255, 0)
+    elif type == "wall":
+        nodes[position[1]][position[0]]["color"] = (0, 0, 0)
+    
     nodes[position[1]][position[0]]["type"] = type
     return nodes
 
@@ -75,12 +77,10 @@ def find_distance(nodes: list, screen_size: tuple) -> list:
     #find start and end node
     for row in nodes:
         for node in row:
-            match node["type"]:
-                case "start":
-                    print(node)
-                    start_node = node
-                case "end":
-                    end_node = "node"
+            if node["type"] == "start":
+                start_node = node
+            if node["type"] == "end":
+                end_node = "node"
     #declare the list of already visited/known nodes
     closed_nodes = [start_node]
     #declare possible directions to look for neigbours
@@ -96,10 +96,37 @@ def find_distance(nodes: list, screen_size: tuple) -> list:
                     if current_node["type"] == "end":
                         current_node["color"] = (0, 255, 0)
                     closed_nodes.append(current_node)
-                    print(current_node)
+                    
     return nodes
         
+def find_path(nodes: list, screen_size: tuple) -> list:
+    path = []
+    surround = []
+    directions = [[0, 1], [0, -1], [1, 0], [-1, 0]]
     
+    def find_next_node(node: dict):
+        if node["type"] == "start":
+            return
+        for direction in directions:
+            current = nodes[node["position"][0] + direction[0]][node["position"][1] + direction[1]]
+            
+            if current["distance"] < node["distance"] and current["type"] != "wall":
+                find_next_node(current)
+                node["color"] = (50, 50, 50)
+                print(node["distance"])
+                break
+    
+    for row in nodes:
+        for node in row:
+            if node["type"] == "end":
+                find_next_node(node)
+    
+
+
+    #for node in path:
+
+        
+    return nodes
 
 def render(grid_size, screen, nodes, clock, screen_size: tuple):
     '''renders the map and handles input as needed'''
@@ -107,15 +134,20 @@ def render(grid_size, screen, nodes, clock, screen_size: tuple):
     started = False
     while True:
         for event in pg.event.get():
-            match event.type:
-                case pg.QUIT:
-                    quit()
+            if event.type == pg.QUIT:
+                quit()
 
         mouse_x, mouse_y = pg.mouse.get_pos()
 
+        if pg.mouse.get_pressed()[0] and not started:
+            for row in nodes:
+                for node in row:
+                    if node["rect"].collidepoint(mouse_y, mouse_x):
+                        change_node_type(nodes, node["position"], "wall")
+
         if pg.mouse.get_pressed()[1] and not started:
             nodes = find_distance(nodes, screen_size)
-            #find_path()
+            find_path(nodes, screen_size)
             started = True
 
         screen.fill((0, 0, 0))
